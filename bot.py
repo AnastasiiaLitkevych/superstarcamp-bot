@@ -36,6 +36,7 @@ excel_file_path = 'Super Star 2024.xlsx'  # Adjust the path
 def load_lessons(excel_file_path):
     global lessons, participants
     lessons = {}
+    participants = set()
     try:
         excel_data = pd.ExcelFile(excel_file_path)
         lesson_days = ['Lessons_Monday ', 'Lessons_ Tuesday ', 'Lessons_ Wednesday ', 'Lessons_Thursday', 'Lessons_Friday']
@@ -97,7 +98,7 @@ async def handle_text(update: Update, context: CallbackContext) -> None:
                 for lesson in lessons:
                     response += f"{lesson}\n"
         else:
-            response = f"No schedule found for {text}."
+            response = f"Не знайдено розкладу для {text}."
         await update.message.reply_text(response)
     elif text == "Готелі для розміщення":
         await update.message.reply_document(document=open('hotels.pdf', 'rb'))  # Adjust the path
@@ -115,7 +116,7 @@ async def reload(update: Update, context: CallbackContext) -> None:
 
 # Main function to set up the bot
 async def main() -> None:
-    application = Application.builder().token("7255189052:AAEgqNJiHUKDhmIsuT7oRJO3uOv9wRIb0Ms").build()
+    application = Application.builder().token("YOUR_NEW_BOT_API_TOKEN").build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reload", reload))
