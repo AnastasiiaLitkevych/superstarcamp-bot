@@ -17,7 +17,7 @@ import asyncio
 
 # Enable logging
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format='%(asctime)s - %(name)s - %(levelень)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ lessons = {}
 participants = set()
 
 # Path to the uploaded Excel file
-excel_file_path = 'Super Star 2024.xlsx'  # Adjust the path
+excel_file_path = '/mnt/data/Super Star 2024.xlsx'  # Adjust the path
 
 # Function to load and clean lesson files
 def load_lessons(excel_file_path):
@@ -56,11 +56,15 @@ def get_schedule(dancer_name):
     schedule = {}
     try:
         for day, df in lessons.items():
+            trainers = df.iloc[0]  # First row contains trainer names
             day_schedule = []
-            for _, row in df.iterrows():
-                time = row[0]
-                for trainer, dancer in row[1:].items():
-                    if pd.notna(dancer) and dancer_name.lower() in str(dancer).lower():
+            for index, row in df.iterrows():
+                if index == 0:
+                    continue  # Skip the first row with trainer names
+                time = row[df.columns[0]]
+                for col in df.columns[1:]:
+                    if pd.notna(row[col]) and dancer_name.lower() in str(row[col]).lower():
+                        trainer = trainers[col]
                         day_schedule.append(f"{time} - {trainer.strip()}")
             if day_schedule:
                 schedule[day] = day_schedule
