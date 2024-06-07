@@ -17,7 +17,7 @@ import asyncio
 
 # Enable logging
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levellevel)s - %(message)s',
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ def load_lessons(excel_file_path):
     participants = set()
     try:
         excel_data = pd.ExcelFile(excel_file_path)
-        lesson_days = ['Lessons_Monday ', 'Lessons_ Tuesday ', 'Lessons_ Wednesday ', 'Lessons_Thursday', 'Lessons_Friday']
+        lesson_days = ['Lessons_Monday', 'Lessons_Tuesday', 'Lessons_Wednesday', 'Lessons_Thursday', 'Lessons_Friday']
         for day in lesson_days:
             df = pd.read_excel(excel_file_path, sheet_name=day, skiprows=2)
             df.columns = df.iloc[0]  # Set the first row as the header
@@ -68,6 +68,19 @@ def get_schedule(dancer_name):
         logger.error(f"Error getting schedule: {e}")
     return schedule
 
+# Function to format the schedule for a given dancer
+def format_schedule(dancer_name):
+    schedule = get_schedule(dancer_name)
+    if not schedule:
+        return f"Не знайдено розкладу для {dancer_name}."
+
+    response = f"Для Вас, {dancer_name}, заброньовано такі уроки:\n"
+    for day, lessons in schedule.items():
+        response += f"\n{day}:\n"
+        for lesson in lessons:
+            response += f"{lesson}\n"
+    return response
+
 # Start command handler
 async def start(update: Update, context: CallbackContext) -> None:
     logger.info("Received /start command")
@@ -77,7 +90,7 @@ async def start(update: Update, context: CallbackContext) -> None:
         [KeyboardButton("Готелі для розміщення")],
         [KeyboardButton("Ціни")]
     ]
-    reply_markup = ReplyKeyboardMarkup(keyboard)
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text('Добрий день! Як я можу Вам допомогти?', reply_markup=reply_markup)
 
 # Handler for text messages
@@ -87,18 +100,10 @@ async def handle_text(update: Update, context: CallbackContext) -> None:
         await update.message.reply_photo(photo=open('schedule.jpg', 'rb'))  # Adjust the path
     elif text == "Переглянути розклад моїх індивідуальних уроків":
         keyboard = [[KeyboardButton(name)] for name in sorted(participants)]
-        reply_markup = ReplyKeyboardMarkup(keyboard)
-        await update.message.reply_text('Будь ласка, виберіть своє ім\'я:', reply_markup=reply_markup)
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+        await update.message.reply_text('Будь ласка, виберіть своє ім\'я або введіть його вручну:', reply_markup=reply_markup)
     elif text in participants:
-        schedule = get_schedule(text)
-        if schedule:
-            response = f"Для Вас, {text}, заброньовано такі уроки:\n"
-            for day, lessons in schedule.items():
-                response += f"\n{day}:\n"
-                for lesson in lessons:
-                    response += f"{lesson}\n"
-        else:
-            response = f"Не знайдено розкладу для {text}."
+        response = format_schedule(text)
         await update.message.reply_text(response)
     elif text == "Готелі для розміщення":
         await update.message.reply_document(document=open('hotels.pdf', 'rb'))  # Adjust the path
@@ -106,7 +111,8 @@ async def handle_text(update: Update, context: CallbackContext) -> None:
         await update.message.reply_photo(photo=open('price_ukr.jpg', 'rb'))  # Adjust the path
         await update.message.reply_photo(photo=open('price_camp_international.jpg', 'rb'))  # Adjust the path
     else:
-        await update.message.reply_text('Будь ласка, виберіть одну з опцій.')
+        response = format_schedule(text)
+        await update.message.reply_text(response)
 
 # Command handler to reload the Excel file
 async def reload(update: Update, context: CallbackContext) -> None:
