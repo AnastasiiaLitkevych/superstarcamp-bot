@@ -116,7 +116,7 @@ async def reload(update: Update, context: CallbackContext) -> None:
 
 # Main function to set up the bot
 async def main() -> None:
-    application = Application.builder().token("YOUR_NEW_BOT_API_TOKEN").build()
+    application = Application.builder().token("7255189052:AAEgqNJiHUKDhmIsuT7oRJO3uOv9wRIb0Ms").build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reload", reload))
